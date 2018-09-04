@@ -71,10 +71,11 @@ def load_dataSet(path  = "./flowers"):
     return trainloader , validloader, testloader, image_datasets
 
 # init the NN
-def nn_init(arch='vgg16', dropout=0.5, fc1_nodes = 1000, outputNodes = 102, learn_rate = 0.001):
+def nn_init(arch='vgg16', dropout=0.5, fc1_nodes = 1000, outputNodes = 102, learn_rate = 0.001, gpu='cpu' ):
     '''
     Arguments : The architecture for the network (alexnet,densenet121,vgg16, resnet18) and 
                 the hyperparameters for the network (dropout, hidden layer 1 nodes, output nodes , learning rate) 
+                + gpu flag
     Returns : A configurated model + criterion and optimizer
     '''
     
@@ -112,25 +113,23 @@ def nn_init(arch='vgg16', dropout=0.5, fc1_nodes = 1000, outputNodes = 102, lear
     criterion = nn.NLLLoss()
     optimizer = optim.Adam(model.classifier.parameters(), lr=learn_rate)
     #model.class_to_idx = train_data.class_to_idx
-    
+            
+    # GPU switch 
+    if torch.cuda.is_available() and gpu == 'gpu':
+        model.to("cuda")
+        print('Using GPU')
+    else: 
+        model.to("cpu")
+        print('Using CPU')
+        
     return model, criterion, optimizer 
 
 # NN Training
-def do_deep_learning(model, trainloader, validloader, epochs, print_every, criterion, optimizer):
+def do_deep_learning(model, trainloader, validloader, epochs, print_every, criterion, optimizer, gpu):
     
     steps = 0
-   
-    # CPU or GPU switch 
     cuda = torch.cuda.is_available()
-    if cuda:
-        model.to("cuda")
-        device="cuda"
-        print('Using GPU')
-    else:
-        model.to("cpu")
-        device="cpu"
-        print('Using CPU')
-        
+    
     print('NN Training Start')    
     model.train() 
    
@@ -141,7 +140,7 @@ def do_deep_learning(model, trainloader, validloader, epochs, print_every, crite
             steps += 1
             
             # If GPU
-            if cuda:
+            if cuda and gpu == 'gpu':
                 #inputs, labels = inputs.cuda(), labels.cuda()
                 inputs, labels = inputs.to('cuda'), labels.to('cuda')
             
@@ -167,7 +166,7 @@ def do_deep_learning(model, trainloader, validloader, epochs, print_every, crite
                         inputs_valid, labels_valid = Variable(inputs_valid), Variable(labels_valid)
 
                         # if GPU
-                        if cuda:
+                        if cuda and gpu == 'gpu':
                             #inputs_valid, labels_valid = inputs_valid.cuda(), labels_valid.cuda()
                             inputs_valid, labels_valid = inputs_valid.to('cuda:0'), labels_valid.to('cuda:0')
                             model.to('cuda:0')
@@ -193,15 +192,18 @@ def do_deep_learning(model, trainloader, validloader, epochs, print_every, crite
     print('NN Training Finish')
     
 # Save NN state (checkpoint)  
-def save_checkpoint(path, model, optimizer, epochs, fc1_nodes, learn_rate):
+def save_checkpoint(path, model, optimizer, epochs, fc1_nodes, learn_rate, arch):
     '''
-    Arguments: The saving path, model, epochs, fc1_nodes
+    Arguments: The saving path, model, epochs, fc1_nodes, arch
     Returns: Nothing
     This function saves the model at a specified path by the user
     '''
     # TODO: check train_data variable
     # model.class_to_idx = train_data.class_to_idx
     # 'class_to_idx': image_datasets['train'].class_to_idx
+    
+    # Reset to CPU
+    model.to("cpu")
     
     checkpoint = {
               'epochs': epochs,
@@ -210,16 +212,28 @@ def save_checkpoint(path, model, optimizer, epochs, fc1_nodes, learn_rate):
               'out_HL1': fc1_nodes,
               'learn_rate': learn_rate,
               'state_dict': model.state_dict(),
-              'class_to_idx':model.class_to_idx}
-
+              'class_to_idx':model.class_to_idx,
+              'arch': arch}
+   
     torch.save(checkpoint, 'checkpointpy.pth')
               
 # Load NN checkpoint
-def load_checkpoint(filepath):
+def load_checkpoint(filepath, gpu):
     checkpoint = torch.load(filepath)
     
-    # TODO: add other NN models
-    model = models.vgg16(pretrained=True)
+    # Load Arch
+    arch = checkpoint['arch']
+    if arch == 'vgg16':
+        model = models.vgg16(pretrained=True)
+    elif arch == 'densenet121':
+        model = models.densenet121(pretrained=True)
+    elif arch == 'alexnet':
+        model = models.alexnet(pretrained = True)
+    elif arch == 'resnet18':
+        model = models.resnet18(pretrained = True)
+    else:
+        print("{} is not a valid model. NN accepted: vgg16,densenet121 ,alexnet or resnet18.".format(arch))
+        
     model.classifier = None # reset classifier
     model.classifier = checkpoint['classifier']
     model.class_to_idx = checkpoint['class_to_idx']
@@ -230,6 +244,14 @@ def load_checkpoint(filepath):
     
     epochs = checkpoint['epochs']
     
+    # GPU switch 
+    if torch.cuda.is_available() and gpu == 'gpu':
+        model.to("cuda")
+        print('Using GPU')
+    else: 
+        model.to("cpu")
+        print('Using CPU')
+        
     return model, optimizer, epochs
 
 def process_image(image):

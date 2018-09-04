@@ -21,15 +21,14 @@ import argparse
 import Utils as u
 import json
 
-# TODO Verificare la descrizione a fine script
-argP = argparse.ArgumentParser(description='USAGE: train.py data_dir --arch --hidden_units1 --learning_rate --epochs --dropout')
+argP = argparse.ArgumentParser(description='USAGE: train.py data_dir --arch --hidden_units1 --learning_rate --epochs --dropout --gpu')
 
 argP.add_argument('data_dir', nargs='*', action="store", default="./flowers/")
 argP.add_argument('--arch', dest="arch", action="store", default="vgg16", type = str)
 argP.add_argument('--hidden_units1', type=int, dest="fc1_nodes", action="store", default=1000)
 argP.add_argument('--learning_rate', dest="learning_rate", action="store", default=0.001)
 argP.add_argument('--epochs', dest="epochs", action="store", type=int, default=1)
-# argP.add_argument('--gpu', dest="gpu", action="store", default="gpu")
+argP.add_argument('--gpu', dest="gpu", action="store", default="cpu")
 #argP.add_argument('--save_dir', dest="save_dir", action="store", default="./checkpointPy.pth")
 argP.add_argument('--dropout', dest = "dropout", action = "store", default = 0.5)
 
@@ -45,16 +44,17 @@ dropout = args.dropout
 fc1_nodes = args.fc1_nodes
 learning_rate = args.learning_rate
 epochs = args.epochs
+gpu = args.gpu
 outputNodes = 102
 print_every = 20
 
 trainloader, validloader, testloader, image_datasets = u.load_dataSet(img_path)
 
-model, criterion, optimizer  = u.nn_init(arch, dropout, fc1_nodes, outputNodes, learning_rate)
+model, criterion, optimizer  = u.nn_init(arch, dropout, fc1_nodes, outputNodes, learning_rate, gpu)
 
-u.do_deep_learning(model, trainloader, validloader, epochs, print_every, criterion, optimizer)
+#u.do_deep_learning(model, trainloader, validloader, epochs, print_every, criterion, optimizer, gpu)
 
 model.class_to_idx = image_datasets['train'].class_to_idx
-u.save_checkpoint(img_path, model, optimizer, epochs, fc1_nodes, learning_rate)
+u.save_checkpoint(img_path, model, optimizer, epochs, fc1_nodes, learning_rate, arch)
 
 print("Model Configured, Trained and Saved!")

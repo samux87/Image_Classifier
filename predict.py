@@ -25,13 +25,15 @@ argP = argparse.ArgumentParser(description='USAGE: predict.py image_location che
 argP.add_argument('image_path', default='/home/workspace/aipnd-project/flowers/test/1/image_06743.jpg', nargs='*', action="store", type = str)
 argP.add_argument('checkpoint', default='/home/workspace/aipnd-project/checkpointpy.pth', nargs='*', action="store", type = str)
 argP.add_argument('--topk', default=5, dest="topk", action="store", type=int)
+argP.add_argument('--category_names', dest="category_names", action="store", default='cat_to_name.json')
+argP.add_argument('--gpu', dest="gpu", action="store", default="cpu")
 
 args = argP.parse_args()
 
 # Load Checkpoint
-model, optimizer, epochs = u.load_checkpoint(args.checkpoint)
+model, optimizer, epochs = u.load_checkpoint(args.checkpoint, args.gpu)
 
-with open('cat_to_name.json', 'r') as f:
+with open(args.category_names, 'r') as f:
     cat_to_name = json.load(f)
     
 probs, classes = u.predict(args.image_path, model, args.topk)
