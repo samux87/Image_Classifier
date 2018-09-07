@@ -45,6 +45,8 @@ import os, random
 import pandas as pd
 import seaborn as sb
 
+import json
+
 
 # ## Load the data
 # 
@@ -118,8 +120,6 @@ testloader = torch.utils.data.DataLoader(test_data, batch_size=32)
 
 # In[4]:
 
-
-import json
 
 with open('cat_to_name.json', 'r') as f:
     cat_to_name = json.load(f)
