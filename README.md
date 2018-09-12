@@ -12,6 +12,26 @@ For a first look of the Jupyter Notebook, i suggest to use [nbviewer](https://nb
 
 Otherwise, you can open it in [pdf](https://github.com/samux87/Image_Classifier/blob/master/Image%20Classifier%20Project.pdf) format.
 
+## Python script usage  
+There are three files:
+* train.py (init a new NN, train it and make a checkpoint)
+    * Basic Usage : ```python train.py data_directory --gpu gpu```
+    * arguments:
+        * ```---arch``` (vgg16, vgg13, alexnet, resnet18, densenet121)
+        * ```---hidden_units1```
+        * ```---learning_rate```
+        * ```---epochs```
+        * ```---gpu```
+        * ```---dropout```
+* predict.py (load a checkpoint and Predict)
+    * Basic usage: ```python predict.py /path/to/image checkpoint --gpu gpu```
+    * arguments:
+        * ```---topk```
+        * ```---category_names```
+        * ```---gpu```
+
+* utils.py (support library)
+
 ## Authors
 
 * **Samuele Buosi**
