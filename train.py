@@ -2,8 +2,8 @@
 
 import matplotlib.pyplot as plt
 
-import torch
 import numpy as np
+import torch
 from torch import nn
 from torch import optim
 import torch.nn.functional as F
@@ -52,7 +52,7 @@ trainloader, validloader, testloader, image_datasets = u.load_dataSet(img_path)
 
 model, criterion, optimizer  = u.nn_init(arch, dropout, fc1_nodes, outputNodes, learning_rate, gpu)
 
-#u.do_deep_learning(model, trainloader, validloader, epochs, print_every, criterion, optimizer, gpu)
+u.do_deep_learning(model, trainloader, validloader, epochs, print_every, criterion, optimizer, gpu)
 
 model.class_to_idx = image_datasets['train'].class_to_idx
 u.save_checkpoint(img_path, model, optimizer, epochs, fc1_nodes, learning_rate, arch)
